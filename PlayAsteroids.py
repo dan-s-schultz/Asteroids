@@ -181,6 +181,8 @@ class LargeAsteroid(ParentAsteroid):
 class Photon(MovingBody):
     INITIAL_SPEED = 2.0 * SmallAsteroid.MAX_SPEED
     LIFETIME      = 40
+    # changing intial speed will result in a change of the range of your photon cannon
+    # changing lifetime will change the range, but not the speed of the weapon
 
     def __init__(self,source,world):
         self.age  = 0
@@ -208,6 +210,11 @@ class Ship(MovingBody):
     IMPULSE_FRAMES = 4
     ACCELERATION   = 0.05
     MAX_SPEED      = 2.0
+    
+    #explode ship
+    SHRAPNEL_CLASS  = Ember
+    SHRAPNEL_PIECES = 50
+    WORTH = 0
 
     def __init__(self,world):
         position0    = Point2D()
@@ -239,7 +246,9 @@ class Ship(MovingBody):
     def shape(self):
         h  = self.get_heading()
         hp = h.perp()
-        p1 = self.position + h
+        p1 = self.position + h * 1.8
+        #p15 = self.position + h * 0.1 + hp * 0.3
+        #p16 = self.position + h * 0.1 - hp * 0.3
         p2 = self.position + hp * 0.5
         p3 = self.position - hp * 0.5
         return [p1,p2,p3]
@@ -258,11 +267,21 @@ class Ship(MovingBody):
             self.velocity = self.velocity * (self.MAX_SPEED / m)
             self.impulse = 0
 
+    def explode(self):
+    # make ship explode
+        self.world.score += self.WORTH
+        if self.SHRAPNEL_CLASS == None:
+            return
+        for _ in range(self.SHRAPNEL_PIECES):
+            self.SHRAPNEL_CLASS(self.position,self.world)
+        self.leave()
+
 class PlayAsteroids(Game):
 
     DELAY_START      = 150
     MAX_ASTEROIDS    = 6
     INTRODUCE_CHANCE = 0.01
+    PAUSE_GAME       = False
     
     def __init__(self):
         Game.__init__(self,"ASTEROIDS!!!",60.0,45.0,800,600,topology='wrapped')
@@ -288,8 +307,17 @@ class PlayAsteroids(Game):
             self.ship.turn_left()
         elif event.char == 'l':
             self.ship.turn_right()
+        elif event.char == 'e':
+        # later on we may switch the cause of this event to an asteroid impact
+            self.ship.explode()
         elif event.char == ' ':
             self.ship.shoot()
+        elif event.char == 'p':
+        # pause game
+          if self.PAUSE_GAME == False:
+            self.PAUSE_GAME = True
+          else:
+            self.PAUSE_GAME = False
         
     def update(self):
 
@@ -314,3 +342,7 @@ game = PlayAsteroids()
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()
+    while game.PAUSE_GAME:
+      pass
+      # needs some way to un pause the game...
+      # so it should be updating so that it can check for pause or quit commands, but not others
