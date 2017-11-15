@@ -1,0 +1,12 @@
+# this file is a list of improvements we've made to the game
+# here, we will enumerate 1.) the changes we've made, 2.) how we made them, and 3.) what points we think they're worth.
+
+improvements:
+1. lengthened ship - orientation of ship is difficult to determine, this was easy.
+2. I made the ship the self destruct with character 'e', ship blows up.  (Maybe we could have a screen print "GAME OVER")
+3. Pause game feature in progress.  Game needs a way to unpause - this means the game should be updating some objects but not others
+
+
+1. an easy improvement would be to lengthen the range of the photon gun! LIFETIME constant in class photon could be extended, so could speed.
+2. 
+
