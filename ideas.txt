@@ -1,0 +1,42 @@
+
+1. A docking station that needs to be protected.  The docking station has fuel, missiles.  If you run out of missiles or fuel you die.
+2. The docking station has a shield.
+3. you have a shield
+4. both shields protect you less over time.
+5. by shooting asteroids, you protect the docking station.
+6. by shooting asteroids, you gain fuel or missiles.
+7. over time, more and larger asteroids appear.
+8. Over time, you can gain more powerful missiles, more fuel, increased thrust, and a stronger shield
+9. a brake option that allows you slow down
+10.  Better steering
+11. a different ship shape so that you can see which way you're pointing 
+
+1. a docking station object
+2. mine asterois for point
+3. points are only redeemed at dock
+4. aliens try to shoot you, thus taking your loot.
+
+decrement a ctr for a minable asteroid geting shot. mimic code where the asteroid explodes, except maybe the asteroid gives you 
+a loot.   
+
+so a photon will need to know that they came from a ship. or a the asteroid must know that it got destroyed by ship.l
+
+if a ship gets hit it loses its loot.
+
+if a ship gets close to a dock, it's position should be set to that of the dock. then you would release it with some key.  So you would need the ship to not dock the ship until its a certain distance away.
+
+For now, do easy stuff:
+shield
+make ship explode
+count lives/get rid of immortality
+pause
+etc.
+
+Then, add minable asteroid...
+Try adding stuff to the ship.
+Then add the notion of when you've cleared a screen of minable asteroids.
+Add Dock last.
+
+ by next tuesday: get done minable asteroid, pause, shield, die options
+
+
