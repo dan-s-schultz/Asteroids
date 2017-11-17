@@ -56,7 +56,8 @@ class Game(Frame):
 
         # Populate the world with creatures
         self.agents = []
-        self.GAME_OVER = False
+        self.GAME_OVER  = False
+        self.PAUSE_GAME = False
 
         # Initialize the graphics window.
         self.root = Tk()
@@ -103,12 +104,15 @@ class Game(Frame):
         self.agents.remove(agent)
 
     def update(self):
+      if not self.PAUSE_GAME:
         for agent in self.agents:
             agent.update()
         self.clear()
         for agent in self.agents:
             self.draw_shape(agent.shape(),agent.color())
-        Frame.update(self)
+      
+      Frame.update(self)
+        
 
     def draw_shape(self, shape, color):
         wh,ww = self.WINDOW_HEIGHT,self.WINDOW_WIDTH
@@ -144,3 +148,10 @@ class Game(Frame):
     def handle_keypress(self,event):
         if event.char == 'q':
             self.GAME_OVER = True
+        elif event.char == 'p':
+        # pause game
+          if self.PAUSE_GAME == False:
+            self.PAUSE_GAME = True
+          else:
+            self.PAUSE_GAME = False
+        
