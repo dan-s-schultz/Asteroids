@@ -15,9 +15,19 @@ improvements:
         A "Game over.  Do you want to play again?  Type y or n." screen would be nice at this point.  'y' would reboot the world and the game. 'n' would quit the game, setting GAME_OVER constant to True.
 
 
+Goals for game:
+1. GUI for Game over and y or n for play again.
+2. Game reset of some kind after loss of life
+3. create minable asteroids
+4. make it so that ships can "land" (method) and "take off" on minable asteroids (and later on the dock).
+5. have a point system for 1.) shooting asteroids 2.) mining asteroids
+6. have a dock to deposit points and exchange them for upgrades and lives.  Docking secures points? and definitely brings up a menu after ship "lands".
+7. upgrades:  1.)increase the speed/range on photon gun. (simply change the speed of the photons)
+              2.)buy a temporary shield (with multiple uses, timed)
+              3.)mega bomb (clear screen)
+              4.)Earn a life
+              5.)Earn a ship "stop" method.  Ship stops moving immediately.
 
-1. an easy improvement would be to lengthen the range of the photon gun! LIFETIME constant in class photon could be extended, so could speed.
-2. 
 
 
 
