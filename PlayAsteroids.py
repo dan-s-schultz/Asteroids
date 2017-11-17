@@ -246,7 +246,7 @@ class Ship(MovingBody):
     def shape(self):
         h  = self.get_heading()
         hp = h.perp()
-        p1 = self.position + h * 1.8
+        p1 = self.position + h * 2.0
         #p15 = self.position + h * 0.1 + hp * 0.3
         #p16 = self.position + h * 0.1 - hp * 0.3
         p2 = self.position + hp * 0.5
@@ -312,12 +312,7 @@ class PlayAsteroids(Game):
             self.ship.explode()
         elif event.char == ' ':
             self.ship.shoot()
-        elif event.char == 'p':
-        # pause game
-          if self.PAUSE_GAME == False:
-            self.PAUSE_GAME = True
-          else:
-            self.PAUSE_GAME = False
+        
         
     def update(self):
 
@@ -337,12 +332,10 @@ class PlayAsteroids(Game):
         Game.update(self)
         
 
-print("Hit j and l to turn, i to create thrust, and SPACE to shoot. Press q to quit.")
+print("Hit 'j' and 'l' to turn, 'i' to create thrust, and SPACE to shoot.")
+print("Press 'q' to quit, and 'p' to pause.")
 game = PlayAsteroids()
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()
-    while game.PAUSE_GAME:
-      pass
-      # needs some way to un pause the game...
-      # so it should be updating so that it can check for pause or quit commands, but not others
+
