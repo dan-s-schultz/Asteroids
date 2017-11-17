@@ -2,11 +2,22 @@
 # here, we will enumerate 1.) the changes we've made, 2.) how we made them, and 3.) what points we think they're worth.
 
 improvements:
-1. lengthened ship - orientation of ship is difficult to determine, this was easy.
+1. changed ship ship - (the orientation of ship was difficult to determine), this was easy - 0.5pts.
 2. I made the ship the self destruct with character 'e', ship blows up.  (Maybe we could have a screen print "GAME OVER")
-3. Pause game feature in progress.  Game needs a way to unpause - this means the game should be updating some objects but not others
+3. Pause game feature. Use key 'p'. Game pauses and unpauses; this took some edits to game.update().  2pts
+4. Ship explodes when it contacts other asteroids.  Ship now has multiple lives.  2pts.
+        I did this by having ship inherit from "Shootable" and by changing some conditions in "Photon."
+        Ship now has attribute "ship.lives"  the lives of a ship depend on how many deaths it has.
+        
+            My goal is to implement a world reboot, or a pause in asteroid movement after the ship loses one life.
+        During this reboot, the ship will reset its position -> I'd do this because if the ship hits a large asteroid,
+        it loses multiple lives, removing the ship from the world ( with ship.leave() ).  This seems unfair.  It would be nice to end the game after a loss of three lives, instead of just removing the ship from the screen.
+        A "Game over.  Do you want to play again?  Type y or n." screen would be nice at this point.  'y' would reboot the world and the game. 'n' would quit the game, setting GAME_OVER constant to True.
+
 
 
 1. an easy improvement would be to lengthen the range of the photon gun! LIFETIME constant in class photon could be extended, so could speed.
 2. 
+
+
 
