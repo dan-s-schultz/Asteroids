@@ -198,14 +198,17 @@ class Photon(MovingBody):
         if self.age >= self.LIFETIME:
             self.leave()
         else:
-            targets = [a for a in self.world.agents if isinstance(a,Shootable)]
+            targets = [a for a in self.world.agents if isinstance(a,Shootable) and (not isinstance(a,Ship))]
             for t in targets:
-                if t.is_hit_by(self):
+                if(t.is_hit_by(self)):
                     t.explode()
                     self.leave()
                     return
 
-class Ship(MovingBody):
+# class Minable(Asteroid):
+
+
+class Ship(Shootable):
     TURNS_IN_360   = 24
     IMPULSE_FRAMES = 4
     ACCELERATION   = 0.05
@@ -214,15 +217,18 @@ class Ship(MovingBody):
     #explode ship
     SHRAPNEL_CLASS  = Ember
     SHRAPNEL_PIECES = 50
-    WORTH = 0
+    
+    # die
+    SIZE = 1.0
 
     def __init__(self,world):
         position0    = Point2D()
         velocity0    = Vector2D(0.0,0.0)
-        MovingBody.__init__(self,position0,velocity0,world)
+        Shootable.__init__(self,position0,velocity0,self.SIZE,world)
         self.speed   = 0.0
         self.angle   = 90.0
         self.impulse = 0
+        self.lives = 3
 
     def color(self):
         return "#F0C080"
@@ -247,11 +253,12 @@ class Ship(MovingBody):
         h  = self.get_heading()
         hp = h.perp()
         p1 = self.position + h * 2.0
-        #p15 = self.position + h * 0.1 + hp * 0.3
-        #p16 = self.position + h * 0.1 - hp * 0.3
-        p2 = self.position + hp * 0.5
-        p3 = self.position - hp * 0.5
-        return [p1,p2,p3]
+        p2 = self.position + hp*0.3
+        p3 = self.position + hp*0.7 - h*0.5
+        p4 = self.position - h*0.2
+        p5 = self.position - hp*0.7 - h*0.5
+        p6 = self.position - hp*0.3
+        return [p1,p2,p3,p4,p5,p6]
 
     def steer(self):
         if self.impulse > 0:
@@ -267,14 +274,42 @@ class Ship(MovingBody):
             self.velocity = self.velocity * (self.MAX_SPEED / m)
             self.impulse = 0
 
+
+    
+    # def update(self):
+      # check # of lives, see if game over or lives -= 1
+      
+ 
+    # maybe Ship should have its own leave method that inherits from leave, but changes life count
+    def update(self):
+        MovingBody.update(self)
+        if self.lives <= 0:
+        # end of game
+        # some cool "GAME OVER" print screen would be nice
+          self.explode()
+          self.leave()
+          
+          # Needs to change GAME_OVER = True and say so
+        else:
+            targets = [a for a in self.world.agents if isinstance(a,Shootable)]
+            for t in targets:
+                if ( (t is not self) and t.is_hit_by(self) ):
+                    t.explode()
+                    self.explode()
+                    self.lives -= 1
+                    # print to screen: number of lives
+                    # need to pause game for a second and say DAMAGE SEVERE Lives = X
+                    # reboot position, stop asteroid movement
+                    return
+          
     def explode(self):
-    # make ship explode
-        self.world.score += self.WORTH
         if self.SHRAPNEL_CLASS == None:
             return
         for _ in range(self.SHRAPNEL_PIECES):
             self.SHRAPNEL_CLASS(self.position,self.world)
-        self.leave()
+        # maybe explode could reboot the game/pause asteroid movement and print lives = x ?
+
+# class Alien(Moving Body):
 
 class PlayAsteroids(Game):
 
@@ -338,4 +373,5 @@ game = PlayAsteroids()
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()
+
 
