@@ -1,5 +1,5 @@
 from tkinter import *
-from Game import Game, Agent
+from Game import *
 from geometry import Point2D, Vector2D
 import math
 import random
@@ -32,6 +32,164 @@ class MovingBody(Agent):
         self.velocity = self.velocity + self.accel * TIME_STEP
         self.accel    = self.steer()
         self.world.trim(self)
+        
+class Dockable(MovingBody):
+  
+    WORTH     = 50
+    MIN_SPEED = 0.1
+    MAX_SPEED = 0.3
+    SIZE      = 2.0
+    
+    def __init__(self,world):
+        world.number_of_asteroids += 1
+        self.radius = self.SIZE
+        velocity0 = self.choose_velocity()
+        position0 = world.bounds.point_at(random.random(),random.random())
+        if abs(velocity0.dx) >= abs(velocity0.dy):
+            if velocity0.dx > 0.0:
+                # LEFT SIDE
+                position0.x = world.bounds.xmin
+            else:
+                # RIGHT SIDE
+                position0.x = world.bounds.xmax
+        else:
+            if velocity0.dy > 0.0:
+                # BOTTOM SIDE
+                position0.y = world.bounds.ymin
+            else:
+                # TOP SIDE
+                position0.y = world.bounds.ymax
+        MovingBody.__init__(self,position0,velocity0,world)
+        self.sv = velocity0
+        # self.sv is used to store ship velocity later.  It is init as v0 just to give it vector type
+        self.make_shape()
+  
+    def color(self):
+        return ("lawn green")
+
+    def choose_velocity(self):
+        return Vector2D.random() * random.uniform(self.MIN_SPEED,self.MAX_SPEED) 
+        
+    def make_shape(self):
+        angle = 0.0
+        dA = 2.0 * math.pi / 15.0
+        center = Point2D(0.0,0.0)
+        self.polygon = []
+        for i in range(15):
+            if i % 3 == 0 and random.random() < 0.2:
+                r = self.radius/2.0 + random.random() * 0.25
+            else:
+                r = self.radius - random.random() * 0.25
+            dx = math.cos(angle)
+            dy = math.sin(angle)
+            angle += dA
+            offset = Vector2D(dx,dy) * r
+            self.polygon.append(offset)
+
+    def shape(self):
+        return [self.position + offset for offset in self.polygon]
+
+    def is_hit_by(self, docker):
+        return ((self.position - docker.position).magnitude() <= self.radius)
+
+    def update(self):
+        MovingBody.update(self)
+        ships = [a for a in self.world.agents if isinstance(a,Ship)]
+        for s in ships:
+          
+          if s.docked == False and (s.is_hit_by(self)) and s.dock_mode == True:
+          # ship is not docked and intercepts dockable body
+          # s.docked designates whether or not the ship is docked, not whether or not the ship wishes to dock.
+          # dockmode is changed by a keypress event
+            s.docked = True
+            self.sv = s.velocity
+            s.position = self.position
+            s.velocity = self.velocity
+            return
+          elif s.docked == True and (s.is_hit_by(self)) and s.dock_mode == True:
+          # ship is docked and is staying that way
+            s.position = self.position
+            s.velocity = self.velocity
+            return
+          elif s.docked == True and (s.is_hit_by(self)) and s.dock_mode == False:
+          # ship is docked on body and wants to leave
+          # mildly change ship direction and give ship time to leave
+              s.velocity = self.sv.over(2.0)
+              s.docked = False
+
+
+class Minable(Dockable):
+  
+    
+    # ERROR on Ember class undefined...?
+    # mining feature has issue that ship must undock for asteroid to leave world
+    
+    #SHRAPNEL_CLASS  = Ember
+    SHRAPNEL_PIECES = 15
+    WORTH           = 100
+    
+    def __init__(self,world):
+        Dockable.__init__(self,world)
+        self.flash_ctr = 0
+        
+    
+    def explode(self):
+    # This works but the ship has to undock before the asteroid is destroyed
+        self.world.score += self.WORTH
+        #for _ in range(self.SHRAPNEL_PIECES):
+        #    self.SHRAPNEL_CLASS(self.position,self.world)
+        print("I should explode!")
+        self.leave()
+
+    def color(self):
+    # changes color of asteroid if it is being mined
+      if   self.flash_ctr    == 0:
+        return "DodgerBlue4"
+      elif self.flash_ctr%10 == 0:
+        return "orange red"
+      else:
+        return "DodgerBlue4"
+
+    def update(self):
+        MovingBody.update(self)
+        ships = [a for a in self.world.agents if isinstance(a,Ship)]
+        for s in ships:
+          if s.docked == False and (s.is_hit_by(self)) and s.dock_mode == True:
+          # ship is not docked and intercepts dockable body
+          # s.docked designates whether or not the ship is docked, not whether or not the ship wishes to dock.
+          # dockmode is changed by a keypress event
+            s.docked   = True
+            self.sv    = s.velocity
+            s.position = self.position
+            s.velocity = self.velocity
+            return
+          elif s.docked == True and (s.is_hit_by(self)) and s.dock_mode == True:
+          # ship is docked and is staying that way
+            s.position      = self.position
+            s.velocity      = self.velocity
+            self.flash_ctr += 1
+            return
+          elif s.docked == True and (s.is_hit_by(self)) and s.dock_mode == False:
+          # ship is docked on body and wants to leave, it leaves here
+              s.velocity = self.sv.over(2.0)
+              s.docked   = False
+          break
+        if self.flash_ctr > 100:
+        # ship has mined asteroid, destroy asteroid, free ship
+            self.explode()
+
+
+#class Dock(Dockable):
+  
+    # copy init function from dockable
+    # shape of Dock will be rectangular
+    # Game will begin and end with Dock
+    # Dock should be invincible
+    # when ship docks, dock displays an upgrade menu
+    # when the state of the ship is docked on dock, we can use keypress events to buy upgrades
+    # first we need points and a score display for the asteroids destroyed in the status bar.
+    
+    
 
 class Shootable(MovingBody):
 
@@ -198,14 +356,16 @@ class Photon(MovingBody):
         if self.age >= self.LIFETIME:
             self.leave()
         else:
-            targets = [a for a in self.world.agents if isinstance(a,Shootable)]
+            targets = [a for a in self.world.agents if isinstance(a,Shootable) and (not isinstance(a,Ship))]
             for t in targets:
-                if t.is_hit_by(self):
+                if(t.is_hit_by(self)):
                     t.explode()
                     self.leave()
                     return
 
-class Ship(MovingBody):
+
+
+class Ship(Shootable):
     TURNS_IN_360   = 24
     IMPULSE_FRAMES = 4
     ACCELERATION   = 0.05
@@ -214,15 +374,23 @@ class Ship(MovingBody):
     #explode ship
     SHRAPNEL_CLASS  = Ember
     SHRAPNEL_PIECES = 50
-    WORTH = 0
+    
+    # die
+    SIZE = 3.0
+    DEATH_DELAY = 50
+    
 
     def __init__(self,world):
         position0    = Point2D()
         velocity0    = Vector2D(0.0,0.0)
-        MovingBody.__init__(self,position0,velocity0,world)
+        Shootable.__init__(self,position0,velocity0,self.SIZE,world)
         self.speed   = 0.0
         self.angle   = 90.0
         self.impulse = 0
+        self.recent_death = False
+        self.death_delay = self.DEATH_DELAY
+        self.dock_mode = False
+        self.docked = False
 
     def color(self):
         return "#F0C080"
@@ -247,11 +415,12 @@ class Ship(MovingBody):
         h  = self.get_heading()
         hp = h.perp()
         p1 = self.position + h * 2.0
-        #p15 = self.position + h * 0.1 + hp * 0.3
-        #p16 = self.position + h * 0.1 - hp * 0.3
-        p2 = self.position + hp * 0.5
-        p3 = self.position - hp * 0.5
-        return [p1,p2,p3]
+        p2 = self.position + hp*0.3
+        p3 = self.position + hp*0.7 - h*0.5
+        p4 = self.position - h*0.2
+        p5 = self.position - hp*0.7 - h*0.5
+        p6 = self.position - hp*0.3
+        return [p1,p2,p3,p4,p5,p6]
 
     def steer(self):
         if self.impulse > 0:
@@ -268,20 +437,67 @@ class Ship(MovingBody):
             self.impulse = 0
 
     def explode(self):
-    # make ship explode
-        self.world.score += self.WORTH
         if self.SHRAPNEL_CLASS == None:
             return
         for _ in range(self.SHRAPNEL_PIECES):
             self.SHRAPNEL_CLASS(self.position,self.world)
-        self.leave()
+
+    def change_dockmode(self):
+        if self.dock_mode == False:
+          self.dock_mode = True
+        else:
+          self.dock_mode = False
+      
+
+    # maybe Ship should have its own leave method that inherits from leave, but changes life count
+    def update(self):
+        MovingBody.update(self)
+        
+        if self.recent_death == False:
+          
+          if self.world.lives <= 0:
+          # end of game
+          # some cool "GAME OVER" print screen would be nice
+            self.explode()
+            self.leave()
+            self.world.report("GAME OVER, press 'q' to quit")
+          # Needs to change GAME_OVER = True and say so
+          else:
+              targets = [a for a in self.world.agents if isinstance(a,Shootable)]
+              for t in targets:
+                  if ( (t is not self) and t.is_hit_by(self) ):
+                      t.explode()
+                      self.explode()
+                      self.world.lives -= 1
+                      life_report = "WATCH OUT! Lives = "+str(self.world.lives)
+                      self.world.report()
+                      self.world.report()
+                      self.world.report()
+                      self.world.report(life_report)
+                      self.recent_death = True
+                      self.death_delay = 200
+                      break
+
+                    
+        if self.death_delay > 0:
+            self.death_delay -= 1
+        else:
+            self.recent_death = False
+            # death_delay gives the ship a moment of invincibility after striking an asteroid
+                    # print to screen: number of lives
+                    # need to pause game for a second and say DAMAGE SEVERE Lives = X
+                    # reboot position, stop asteroid movement
+                    # We could also destroy all small asteroids made by the impact, without subtracting lives?
+
+
+
+# class Alien(Moving Body):
 
 class PlayAsteroids(Game):
 
-    DELAY_START      = 150
+    DELAY_START      = 50
     MAX_ASTEROIDS    = 6
     INTRODUCE_CHANCE = 0.01
-    PAUSE_GAME       = False
     
     def __init__(self):
         Game.__init__(self,"ASTEROIDS!!!",60.0,45.0,800,600,topology='wrapped')
@@ -290,11 +506,22 @@ class PlayAsteroids(Game):
         self.number_of_shrapnel = 0
         self.level = 1
         self.score = 0
+        self.lives = 3
 
         self.before_start_ticks = self.DELAY_START
         self.started = False
 
         self.ship = Ship(self)
+
+    """
+    attempting to get score reported when each thing leaves world, but score reports multiple times...
+    right now score report is just in terminal. It can easily be made otherwise (as I've done with the pause_edit file)
+    Lives report is handled in ship.  We can do the same thing inside of the "explode()" function for all asteroids!
+    
+    def remove(self, agent):
+        self.agents.remove(agent)
+        score_report = "Points = "+str(self.score)
+        self.report(score_report)"""
 
     def max_asteroids(self):
         return min(2 + self.level,self.MAX_ASTEROIDS)
@@ -312,6 +539,8 @@ class PlayAsteroids(Game):
             self.ship.explode()
         elif event.char == ' ':
             self.ship.shoot()
+        if event.char == 'd':
+            self.ship.change_dockmode()
         
         
     def update(self):
@@ -328,6 +557,7 @@ class PlayAsteroids(Game):
             tense = tense or (self.number_of_shrapnel >= 2*self.level)
             if not tense and random.random() < self.INTRODUCE_CHANCE:
                 LargeAsteroid(self)
+                Minable(self)
 
         Game.update(self)
         
@@ -335,7 +565,8 @@ class PlayAsteroids(Game):
 print("Hit 'j' and 'l' to turn, 'i' to create thrust, and SPACE to shoot.")
 print("Press 'q' to quit, and 'p' to pause.")
 game = PlayAsteroids()
+# can we add music to the game?  Some synthwave jams?
 while not game.GAME_OVER:
+  # while not PAUSE_GAME:
     time.sleep(1.0/60.0)
     game.update()
-

@@ -2,6 +2,8 @@ from tkinter import *
 from geometry import Bounds, Point2D
 import sys
 
+
+
 class Agent:
 
     INTENSITIES = [4,5,6,7,8,7,6,5,4,3,2,1,0,1,2,3]
@@ -28,6 +30,8 @@ class Agent:
 
     def leave(self):
         self.world.remove(self)
+
+
 
 class Game(Frame):
 
@@ -58,6 +62,7 @@ class Game(Frame):
         self.agents = []
         self.GAME_OVER  = False
         self.PAUSE_GAME = False
+        
 
         # Initialize the graphics window.
         self.root = Tk()
@@ -104,14 +109,18 @@ class Game(Frame):
         self.agents.remove(agent)
 
     def update(self):
-      if not self.PAUSE_GAME:
+    
+      if not self.PAUSE_GAME: 
         for agent in self.agents:
             agent.update()
         self.clear()
         for agent in self.agents:
             self.draw_shape(agent.shape(),agent.color())
-      
+        
       Frame.update(self)
+      
+      
+      
         
 
     def draw_shape(self, shape, color):
@@ -128,6 +137,7 @@ class Game(Frame):
         self.canvas.delete('all')
         self.canvas.create_rectangle(0, 0, self.WINDOW_WIDTH, self.WINDOW_HEIGHT, fill="#000000")
 
+   
     def window_to_world(self,x,y):
         return self.bounds.point_at(x/self.WINDOW_WIDTH, 1.0-y/self.WINDOW_HEIGHT)
 
@@ -154,4 +164,3 @@ class Game(Frame):
             self.PAUSE_GAME = True
           else:
             self.PAUSE_GAME = False
-        
