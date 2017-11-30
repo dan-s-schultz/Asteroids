@@ -468,7 +468,12 @@ class Ship(Shootable):
                   if ( (t is not self) and t.is_hit_by(self) ):
                       t.explode()
                       self.explode()
-                      self.lives -= 1
+                      self.world.lives -= 1
+                      life_report = "WATCH OUT! Lives = "+str(self.world.lives)
+                      self.world.report()
+                      self.world.report()
+                      self.world.report()
+                      self.world.report(life_report)
                       self.recent_death = True
                       self.death_delay = 200
                       break
